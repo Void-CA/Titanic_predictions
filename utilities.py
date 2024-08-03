@@ -1,5 +1,9 @@
 from pandas import DataFrame
 import pandas as pd
+from sklearn.model_selection import train_test_split
+import torch
+import torch.nn as nn
+import torch.optim as optim
 
 conversion_functions = {
     'int': lambda series: pd.to_numeric(series, errors='coerce').astype('Int64'),
@@ -75,7 +79,6 @@ def group_rare_categories(df, column, threshold=50):
     return df
 
 
-
 def extract_date_features(df, date_column):
     """
     Extracts temporal features from a date column.
@@ -91,3 +94,78 @@ def extract_date_features(df, date_column):
     return df
 
 
+class Notebook:
+    """
+    A class to handle data preprocessing for a machine learning task.
+
+    Attributes
+    ----------
+    test : pandas.DataFrame
+        The test dataset.
+    X_train : pandas.DataFrame
+        The training features.
+    y_train : pandas.Series
+        The training labels.
+    X_test : pandas.DataFrame
+        The testing features.
+    y_test : pandas.Series
+        The testing labels.
+    X_true_test : pandas.DataFrame
+        The preprocessed test features ready for prediction.
+    """
+
+    def __init__(self, train_file='data/train.csv', test_file='data/test.csv'):
+        """
+        Initializes the Notebook class by loading and preprocessing data.
+
+        Parameters
+        ----------
+        train_file : str, optional
+            Path to the training data file (default is 'data/train.csv').
+        test_file : str, optional
+            Path to the test data file (default is 'data/test.csv').
+
+        Sets
+        ----------
+        self. Test : pandas.DataFrame
+            The test dataset.
+        self.X_train : pandas.DataFrame
+            The training features.
+        self.y_train : pandas.Series
+            The training labels.
+        self.X_test : pandas.DataFrame
+            The testing features.
+        self.y_test : pandas.Series
+            The testing labels.
+        self.X_true_test : pandas.DataFrame
+            The preprocessed test features ready for prediction.
+        """
+        self.columns = {"Pclass": 'category', 'Embarked': 'category', "Sex": 'category'}
+        self.test = pd.read_csv(test_file)
+        self.train = pd.read_csv(train_file)
+
+        # Preprocess the training data
+        self.train_dummies = pd.get_dummies(self.train.drop(['Cabin', 'Name', 'Ticket'], axis=1))
+        self.X = self.train_dummies.drop(['Survived', 'PassengerId'], axis=1)
+        self.y = self.train['Survived']
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
+            self.X, self.y, test_size=0.2, random_state=42
+        )
+
+        # Preprocess the test data
+        self.test_new = set_multiple_columns_datatype(self.test, self.columns)
+        self.X_true_test = pd.get_dummies(self.test_new.drop(['Cabin', 'Name', 'Ticket', 'PassengerId'], axis=1))
+
+
+class SimpleNNPyTorch(nn.Module):
+    def __init__(self, input_dim, num_classes):
+        super(SimpleNNPyTorch, self).__init__()
+        self.fc1 = nn.Linear(input_dim, 64)
+        self.fc2 = nn.Linear(64, 64)
+        self.fc3 = nn.Linear(64, num_classes)
+
+    def forward(self, x):
+        x = torch.relu(self.fc1(x))
+        x = torch.relu(self.fc2(x))
+        x = self.fc3(x)
+        return x
