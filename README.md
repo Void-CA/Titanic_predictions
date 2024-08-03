@@ -45,8 +45,8 @@ Después de implementar y ajustar varios modelos, logré mejorar la precisión d
 
 ## Autor
 
-- Nombre: [Tu Nombre]
-- Kaggle Profile: [Enlace a tu perfil de Kaggle]
+- Nombre: Ari Castillo
+- Kaggle Profile: https://www.kaggle.com/aricastillo
 
 ## Contacto
 
